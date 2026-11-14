@@ -1,0 +1,10 @@
+{
+  "name": "MMCN Mobile Mesh Calling Network",
+  "short_name": "MMCN",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#071b2e",
+  "theme_color": "#071b2e",
+  "description": "Offline-first local network calling app foundation",
+  "icons": []
+}
