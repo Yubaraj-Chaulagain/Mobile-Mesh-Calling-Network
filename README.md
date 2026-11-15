@@ -1,51 +1,34 @@
 # MMCN – Mobile Mesh Calling Network
 
-**Developer:** Yubaraj Chaulagain  
-**Platforms:** Offline-first HTML/PWA + Capacitor Android wrapper  
-**Languages in the starter UI:** English, नेपाली, हिन्दी
+## Project target
+MMCN is planned as an offline local-network voice communication app. **Any compatible Android phone should be selectable as the hotspot/router host**; the app must not be locked to one phone model.
 
-## Included in this package
-- Responsive MMCN dashboard UI
-- Language selector with local preference storage
-- Offline app shell and service worker
-- Calling-mode entry points: Private, Group, Broadcast, Walkie-Talkie
-- Capacitor Android configuration
-- GitHub Actions workflow at `.github/workflows/build-apk.yml` to build a debug APK
+## Included in this ZIP
+- HTML offline/PWA app shell
+- English, Nepali and Hindi language selector
+- Local offline app shell and service worker
+- Calling-mode interface placeholders
+- Capacitor Android wrapper configuration
+- GitHub Actions workflow for building an Android wrapper APK
 
 ## Important: current implementation status
-This package is a **buildable project foundation, not a completed offline calling/mesh system**. The current buttons are interface placeholders. It does not yet transmit voice, discover nearby phones, control Android hotspots, relay traffic between hotspots, or provide router failover. The APK workflow only packages the current web app into an Android shell; it does not add those missing networking features.
+This ZIP is a **starter/source package, not a finished calling app**. It does not yet provide real voice calls, Android hotspot control, device discovery, multi-router relay, automatic failover, or tested support for 30 devices. The calling controls in the UI are placeholders.
 
-A real offline voice network needs Android-native networking and audio/signaling work. Android phones differ in whether hotspot and Wi-Fi client modes can run together, whether hotspot clients can communicate with one another, and how many clients are allowed. A 30-device target and multi-router failover must be tested on the actual phone models and cannot be guaranteed by this starter.
+A normal web page cannot turn every Android phone into a router or configure hotspot/relay networking. That part needs native Android code and device-specific testing. Android phones differ in whether they can run a hotspot and join another Wi-Fi network at the same time, and hotspot client limits vary.
 
-## Build the Android APK locally
-Requirements: Node.js 20+, Java 17, Android SDK.
+## Build the current Android wrapper
+1. Install Node.js 20+ and Android Studio.
+2. Run `npm install`.
+3. Run `npx cap add android` (first time only).
+4. Run `npx cap sync android`.
+5. Run `npx cap open android` and build the APK in Android Studio.
 
-```bash
-npm install
-npx cap add android   # first build only
-npx cap sync android
-npx cap open android
-```
+The included GitHub Actions workflow can build the current wrapper after the project is pushed to GitHub. It does not add the missing calling/network functions.
 
-Build a debug APK from the Android project:
-
-```bash
-cd android
-./gradlew assembleDebug
-```
-
-APK output: `android/app/build/outputs/apk/debug/app-debug.apk`.
-
-## Build with GitHub Actions
-1. Upload this project to a GitHub repository.
-2. Push the files to the `main` branch.
-3. Open **Actions → Build MMCN Android APK → Run workflow** (or push a change under `www/`).
-4. Download the `MMCN-debug-apk` artifact from the completed workflow run.
-
-## Planned engineering phases
-1. Verify local connectivity between devices on one phone hotspot.
-2. Implement Android-native device discovery and a local signaling service.
-3. Implement WebRTC audio for private calls, then group calls.
-4. Add broadcast and push-to-talk behavior.
-5. Evaluate supported phone-to-phone relay options and test reconnect/failover.
-6. Load-test the intended device count on the target hardware.
+## Required development stages for real MMCN calling
+1. Native Android network permissions and router/host selection for compatible phones.
+2. Local LAN device discovery and signaling server.
+3. WebRTC audio for private calls.
+4. Group audio, broadcast and push-to-talk.
+5. Reconnection and supported relay/failover options.
+6. Real-device tests, starting with a few phones before attempting a 30-device target.

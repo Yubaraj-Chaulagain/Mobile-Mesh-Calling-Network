@@ -1,0 +1,5 @@
+MMCN v0.3 source package
+Target: allow any compatible Android phone to act as the hotspot/router host.
+Status: starter UI + Capacitor wrapper only.
+Not implemented: real voice calling, hotspot control, device discovery, multi-hop mesh,
+router failover, and 30-device capacity. Do not present this package as a finished calling APK.
