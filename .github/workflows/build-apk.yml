@@ -2,6 +2,7 @@ name: Build MMCN Android APK
 
 on:
   workflow_dispatch:
+
   push:
     branches:
       - main
@@ -11,59 +12,76 @@ permissions:
 
 jobs:
   build:
+    name: Build MMCN APK
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout source code
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      # 2. Setup Node.js 20
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Set up Java
+      # 3. Setup Java 21
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
 
+      # 4. Install dependencies
       - name: Install dependencies
         run: npm install
 
-      - name: Check project files
+      # 5. Check required files
+      - name: Validate project
         run: |
-          test -f www/index.html
           test -f package.json
           test -f capacitor.config.json
+          test -f www/index.html
 
+      # 6. Install Capacitor Android
       - name: Create Android platform
         run: |
           if [ ! -d android ]; then
             npx cap add android
           fi
 
+      # 7. Sync Android
       - name: Sync Android
         run: npx cap sync android
 
-      - name: Build APK
+      # 8. Build APK
+      - name: Build Debug APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug
 
+      # 9. Prepare APK
       - name: Prepare APK
         run: |
           mkdir -p release
           cp android/app/build/outputs/apk/debug/app-debug.apk release/MMCN-debug.apk
 
-      - name: Upload APK to GitHub Release
+      # 10. Publish APK to GitHub Releases
+      - name: Publish APK Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mmcn-build-${{ github.run_number }}
           name: MMCN APK Build ${{ github.run_number }}
           body: |
-            MMCN Android APK Build.
+            MMCN Android APK
+
+            Automated Android APK build.
+            
+            Note: This version contains the current MMCN app interface.
+            Real offline voice calling, hotspot control and multi-router
+            networking require further implementation and testing.
           files: release/MMCN-debug.apk
           draft: false
           prerelease: true
