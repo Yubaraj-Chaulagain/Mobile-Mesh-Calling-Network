@@ -5,16 +5,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "v*"
-    paths:
-      - "www/**"
-      - "android/**"
-      - "resources/**"
-      - "package.json"
-      - "package-lock.json"
-      - "capacitor.config.json"
-      - ".github/workflows/build-apk.yml"
 
 permissions:
   contents: write
@@ -31,7 +21,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -42,21 +31,22 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Validate web app
+      - name: Check project files
         run: |
           test -f www/index.html
+          test -f package.json
           test -f capacitor.config.json
 
-      - name: Create Android platform if missing
+      - name: Create Android platform
         run: |
           if [ ! -d android ]; then
             npx cap add android
           fi
 
-      - name: Sync web assets
+      - name: Sync Android
         run: npx cap sync android
 
-      - name: Build Debug APK
+      - name: Build APK
         run: |
           cd android
           chmod +x gradlew
@@ -67,17 +57,13 @@ jobs:
           mkdir -p release
           cp android/app/build/outputs/apk/debug/app-debug.apk release/MMCN-debug.apk
 
-      - name: Publish APK to GitHub Release
+      - name: Upload APK to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mmcn-build-${{ github.run_number }}
           name: MMCN APK Build ${{ github.run_number }}
           body: |
             MMCN Android APK Build.
-
-            Current version includes the offline app interface.
-            Real offline voice calling and multi-router networking
-            still require implementation.
           files: release/MMCN-debug.apk
           draft: false
           prerelease: true
