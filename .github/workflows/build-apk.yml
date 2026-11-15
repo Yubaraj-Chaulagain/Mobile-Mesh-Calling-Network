@@ -16,11 +16,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout source code
-      - name: Checkout source
+      # 1. Checkout Repository
+      - name: Checkout Source
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js 20
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -33,25 +33,25 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      # 4. Install dependencies
-      - name: Install dependencies
+      # 4. Install Dependencies
+      - name: Install Dependencies
         run: npm install
 
-      # 5. Check required files
-      - name: Validate project
+      # 5. Check Required Files
+      - name: Validate Project
         run: |
           test -f package.json
           test -f capacitor.config.json
           test -f www/index.html
 
-      # 6. Install Capacitor Android
-      - name: Create Android platform
+      # 6. Create Android Platform
+      - name: Create Android Platform
         run: |
           if [ ! -d android ]; then
             npx cap add android
           fi
 
-      # 7. Sync Android
+      # 7. Sync Capacitor
       - name: Sync Android
         run: npx cap sync android
 
@@ -62,14 +62,44 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug
 
-      # 9. Prepare APK
+      # 9. Verify APK
+      - name: Verify APK
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+
+          if [ ! -f "$APK" ]; then
+            echo "ERROR: APK file not found!"
+            exit 1
+          fi
+
+          APK_SIZE=$(stat -c%s "$APK")
+
+          if [ "$APK_SIZE" -le 0 ]; then
+            echo "ERROR: APK file is empty!"
+            exit 1
+          fi
+
+          echo "APK successfully created."
+          ls -lh "$APK"
+
+      # 10. Prepare APK
       - name: Prepare APK
         run: |
           mkdir -p release
-          cp android/app/build/outputs/apk/debug/app-debug.apk release/MMCN-debug.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk \
+             release/MMCN-debug.apk
 
-      # 10. Publish APK to GitHub Releases
-      - name: Publish APK Release
+      # 11. Upload APK to Actions Artifact
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MMCN-debug-apk
+          path: release/MMCN-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      # 12. Create GitHub Release and Upload APK
+      - name: Publish APK to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mmcn-build-${{ github.run_number }}
@@ -77,11 +107,15 @@ jobs:
           body: |
             MMCN Android APK
 
-            Automated Android APK build.
-            
-            Note: This version contains the current MMCN app interface.
-            Real offline voice calling, hotspot control and multi-router
-            networking require further implementation and testing.
+            Build: ${{ github.run_number }}
+
+            APK: MMCN-debug.apk
+
+            Note:
+            This build contains the current MMCN application interface.
+            Real offline voice calling, hotspot control and
+            multi-router networking require further development.
           files: release/MMCN-debug.apk
+          fail_on_unmatched_files: true
           draft: false
           prerelease: true
